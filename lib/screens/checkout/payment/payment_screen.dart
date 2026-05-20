@@ -8,7 +8,6 @@ import '../../../models/order_model.dart';
 import '../../../routes/app_routes.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../widgets/common/primary_button.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
 
 class PaymentScreen extends StatefulWidget {
   final String? address;
@@ -22,7 +21,6 @@ class PaymentScreen extends StatefulWidget {
 class _PaymentScreenState extends State<PaymentScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-  bool _isCardComplete = false;
 
   @override
   void dispose() {

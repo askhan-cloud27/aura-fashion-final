@@ -28,29 +28,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   final _searchFocusNode = FocusNode();
   String _searchQuery = '';
 
-  List<ProductModel> get _products {
-    List<ProductModel> list;
-    switch (widget.category) {
-      case ProductCategory.mens:
-        list = SampleProducts.mens;
-        break;
-      case ProductCategory.womens:
-        list = SampleProducts.womens;
-        break;
-      case ProductCategory.shoes:
-        list = SampleProducts.shoes;
-        break;
-      default:
-        list = SampleProducts.all;
-    }
-    if (_searchQuery.isNotEmpty) {
-      list = list
-          .where((p) =>
-              p.name.toLowerCase().contains(_searchQuery.toLowerCase()))
-          .toList();
-    }
-    return list;
-  }
+  // The product list is loaded from Firestore via StreamBuilder in `build()`.
 
   @override
   void dispose() {

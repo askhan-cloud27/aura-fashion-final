@@ -13,24 +13,31 @@ import 'utils/theme/app_theme.dart';
 
 import 'package:flutter_stripe/flutter_stripe.dart';
 
-void main() {
+Future<void> main() async {
   // 1. Initialize Flutter bindings immediately
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // 2. Start all initialization tasks in the background
-  // By not 'awaiting' here, the app launches its first frame instantly.
-  Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  ).then((_) {
+
+  // 2. Perform initialization with proper async error handling
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
     // Initialize Stripe key
     Stripe.publishableKey = 'pk_test_TYooMQauvdEDq54NiTphI7jx';
-    
-    // Start background services
-    Future.wait([
-      Stripe.instance.applySettings(),
-      FirestoreService().seedDatabase(),
-    ]).catchError((e) => debugPrint('Background Init Error: $e'));
-  }).catchError((e) => debugPrint('Firebase Init Error: $e'));
+
+    // Start background services and handle their errors separately
+    try {
+      await Future.wait([
+        Stripe.instance.applySettings(),
+        FirestoreService().seedDatabase(),
+      ]);
+    } catch (e) {
+      debugPrint('Background Init Error: $e');
+    }
+  } catch (e) {
+    debugPrint('Firebase Init Error: $e');
+  }
 
   // 3. Set UI style and run app immediately
   SystemChrome.setSystemUIOverlayStyle(
