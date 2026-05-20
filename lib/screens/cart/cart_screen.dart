@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../utils/constants/app_colors.dart';
-import '../../utils/constants/app_strings.dart';
 import '../../widgets/common/primary_button.dart';
 
 class CartScreen extends StatelessWidget {
@@ -42,7 +41,7 @@ class CartScreen extends StatelessWidget {
                 children: [
                   const Icon(Icons.shopping_bag_outlined, size: 60, color: Colors.black12),
                   const SizedBox(height: 16),
-                  const Text('Your card is empty', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text('Your cart is empty', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   TextButton(
                     onPressed: () => context.go(AppRoutes.home),
                     child: const Text('Go Home', style: TextStyle(color: AppColors.primary)),
@@ -56,7 +55,7 @@ class CartScreen extends StatelessWidget {
                 const Padding(
                   padding: EdgeInsets.fromLTRB(20, 24, 20, 12),
                   child: Text(
-                    'Your Card',
+                    'Your Cart',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
                   ),
                 ),
@@ -159,7 +158,7 @@ class CartScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Card Total', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+                          const Text('Cart Total', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
                           Text(
                             '\$${cart.total.toStringAsFixed(2)}',
                             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),

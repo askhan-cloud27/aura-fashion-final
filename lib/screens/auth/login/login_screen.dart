@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../routes/app_routes.dart';
@@ -79,9 +78,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           const AuraLogo(fontSize: 40),
                           const SizedBox(height: 48),
                           // Welcome text
-                          Text(
+                          const Text(
                             AppStrings.welcomeBack,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w500,
                               color: Colors.white70,
@@ -115,11 +114,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             validator: (v) => v!.length < 6 ? 'Min 6 characters' : null,
                           ),
                           const SizedBox(height: 12),
-                          Align(
+                          const Align(
                             alignment: Alignment.centerRight,
                             child: Text(
                               '${AppStrings.forgotPassword} ?',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColors.accent,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,

@@ -1,11 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../routes/app_routes.dart';
 import '../../utils/constants/app_colors.dart';
+import '../../providers/favourite_provider.dart';
 
-class MainScaffold extends StatelessWidget {
+class MainScaffold extends StatefulWidget {
   final Widget child;
   const MainScaffold({super.key, required this.child});
+
+  @override
+  State<MainScaffold> createState() => _MainScaffoldState();
+}
+
+class _MainScaffoldState extends State<MainScaffold> {
+  @override
+  void initState() {
+    super.initState();
+    // Load wishlist on start if not already loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<FavouriteProvider>().loadFavourites();
+    });
+  }
 
   int _locationToIndex(String location) {
     if (location.startsWith(AppRoutes.home)) return 0;
@@ -38,15 +54,15 @@ class MainScaffold extends StatelessWidget {
     final currentIndex = _locationToIndex(location);
 
     return Scaffold(
-      body: child,
+      body: widget.child,
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: AppColors.navBackground,
           boxShadow: [
             BoxShadow(
               color: AppColors.shadow,
               blurRadius: 10,
-              offset: const Offset(0, -2),
+              offset: Offset(0, -2),
             ),
           ],
         ),

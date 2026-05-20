@@ -28,28 +28,33 @@ class CartItem {
       quantity: quantity ?? this.quantity,
     );
   }
-}
 
-class OrderModel {
-  final String orderId;
-  final List<CartItem> items;
-  final String shippingAddress;
-  final String paymentMethod;
-  final double subtotal;
-  final double shippingCost;
-  final double total;
-  final DateTime placedAt;
-  final String status;
+  Map<String, dynamic> toMap() {
+    return {
+      'productId': product.id,
+      'name': product.name,
+      'price': product.price,
+      'imageUrl': product.imageUrl,
+      'selectedSize': selectedSize,
+      'selectedColor': selectedColor,
+      'quantity': quantity,
+    };
+  }
 
-  const OrderModel({
-    required this.orderId,
-    required this.items,
-    required this.shippingAddress,
-    required this.paymentMethod,
-    required this.subtotal,
-    required this.shippingCost,
-    required this.total,
-    required this.placedAt,
-    this.status = 'Confirmed',
-  });
+  factory CartItem.fromMap(Map<String, dynamic> map) {
+    return CartItem(
+      product: ProductModel(
+        id: map['productId'] ?? '',
+        name: map['name'] ?? '',
+        brand: '', // Simplified snapshot
+        description: '',
+        price: (map['price'] ?? 0.0).toDouble(),
+        imageUrl: map['imageUrl'] ?? '',
+        category: '',
+      ),
+      selectedSize: map['selectedSize'] ?? '',
+      selectedColor: map['selectedColor'] ?? '',
+      quantity: map['quantity'] ?? 1,
+    );
+  }
 }

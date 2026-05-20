@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "762799195995",
+    "project_id": "aura-fashion-store",
+    "storage_bucket": "aura-fashion-store.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:762799195995:android:2df9e491dc5677ec447c7e",
+        "android_client_info": {
+          "package_name": "com.aura.aura_fashion"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDL6gPN-IItu8iEL0IZdUwrG1g3xTZj64E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

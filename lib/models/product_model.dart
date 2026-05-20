@@ -72,6 +72,44 @@ class ProductModel {
       isNew: isNew ?? this.isNew,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'brand': brand,
+      'description': description,
+      'price': price,
+      'originalPrice': originalPrice,
+      'imageUrl': imageUrl,
+      'images': images,
+      'category': category,
+      'sizes': sizes,
+      'colors': colors,
+      'rating': rating,
+      'reviewCount': reviewCount,
+      'isNew': isNew,
+    };
+  }
+
+  factory ProductModel.fromMap(Map<String, dynamic> map, String documentId) {
+    return ProductModel(
+      id: documentId,
+      name: map['name'] ?? '',
+      brand: map['brand'] ?? '',
+      description: map['description'] ?? '',
+      price: (map['price'] ?? 0.0).toDouble(),
+      originalPrice: map['originalPrice']?.toDouble(),
+      imageUrl: map['imageUrl'] ?? '',
+      images: List<String>.from(map['images'] ?? []),
+      category: map['category'] ?? '',
+      sizes: List<String>.from(map['sizes'] ?? []),
+      colors: List<String>.from(map['colors'] ?? []),
+      rating: (map['rating'] ?? 0.0).toDouble(),
+      reviewCount: map['reviewCount'] ?? 0,
+      isNew: map['isNew'] ?? false,
+    );
+  }
 }
 
 // Product Categories

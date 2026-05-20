@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import '../models/product_model.dart';
+import '../models/order_model.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/auth/login/login_screen.dart';
 import '../screens/auth/signup/signup_screen.dart';
@@ -11,8 +12,11 @@ import '../screens/checkout/shipping/shipping_screen.dart';
 import '../screens/checkout/payment/payment_screen.dart';
 import '../screens/order_confirmation/order_confirmation_screen.dart';
 import '../screens/profile/profile_screen.dart';
-import '../screens/profile/profile_placeholders.dart';
+import '../screens/profile/order_history_screen.dart';
+import '../screens/profile/settings_screen.dart';
+import '../screens/profile/favourite_screen.dart';
 import '../screens/profile/order_details_screen.dart';
+import '../screens/profile/account_details_screen.dart';
 import '../widgets/common/main_scaffold.dart';
 
 class AppRoutes {
@@ -61,7 +65,12 @@ final GoRouter appRouter = GoRouter(
           builder: (context, state) {
             final category = state.uri.queryParameters['category'] ?? 'all';
             final title = state.uri.queryParameters['title'] ?? 'Products';
-            return ProductListScreen(category: category, title: title);
+            final focusSearch = state.uri.queryParameters['search'] == 'true';
+            return ProductListScreen(
+              category: category, 
+              title: title, 
+              autoFocusSearch: focusSearch,
+            );
           },
         ),
         GoRoute(
@@ -102,7 +111,10 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.orderDetails,
-      builder: (context, state) => const OrderDetailsScreen(),
+      builder: (context, state) {
+        final order = state.extra as OrderModel?;
+        return OrderDetailsScreen(order: order);
+      },
     ),
     GoRoute(
       path: AppRoutes.settings,

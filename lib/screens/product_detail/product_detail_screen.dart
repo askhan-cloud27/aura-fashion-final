@@ -6,9 +6,7 @@ import '../../providers/cart_provider.dart';
 import '../../providers/favourite_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../utils/constants/app_colors.dart';
-import '../../utils/constants/app_constants.dart';
-import '../../utils/constants/app_strings.dart';
-import '../../widgets/common/primary_button.dart';
+import '../../widgets/product/review_section.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final ProductModel product;
@@ -31,12 +29,31 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.home);
+            }
+          },
         ),
         actions: [
+          // Favorite Button
+          Consumer<FavouriteProvider>(
+            builder: (context, favProvider, child) {
+              final isFav = favProvider.isFavourite(widget.product.id);
+              return IconButton(
+                icon: Icon(
+                  isFav ? Icons.favorite : Icons.favorite_border,
+                  color: isFav ? AppColors.error : Colors.white,
+                ),
+                onPressed: () => favProvider.toggle(widget.product),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.search, color: Colors.white),
-            onPressed: () {},
+            onPressed: () => context.push('${AppRoutes.productList}?search=true'),
           ),
           IconButton(
             icon: const Icon(Icons.shopping_bag_outlined, color: Colors.white),
@@ -177,6 +194,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 32),
+                  ReviewSection(product: widget.product),
                   const SizedBox(height: 40),
                 ],
               ),

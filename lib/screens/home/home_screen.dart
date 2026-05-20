@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/favourite_provider.dart';
 import '../../models/product_model.dart';
+import '../../services/firestore_service.dart';
 import '../../routes/app_routes.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../utils/constants/app_colors.dart';
 import '../../utils/constants/app_strings.dart';
 import '../../widgets/common/aura_logo.dart';
@@ -41,7 +46,7 @@ class HomeScreen extends StatelessWidget {
                   actions: [
                     IconButton(
                       icon: const Icon(Icons.search, color: Colors.white, size: 26),
-                      onPressed: () {},
+                      onPressed: () => context.push('${AppRoutes.productList}?search=true'),
                     ),
                     IconButton(
                       icon: const Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 26),
@@ -274,35 +279,50 @@ class _SectionHeader extends StatelessWidget {
 class _LooksWeLoveList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final products = [
-      const ProductModel(
-        id: 'h2',
-        name: 'The Boston Tee',
-        brand: 'AURA',
-        description: 'A cream-colored, drop-shoulder graphic tee featuring "The Boston" in script across the chest and additional block text near the bottom hem. It\'s a classic streetwear staple.',
-        price: 180.0,
-        imageUrl: 'assets/images/home/home 2.jpg',
-        category: ProductCategory.mens,
-      ),
-      const ProductModel(
-        id: 'h4',
-        name: 'Printed Set',
-        brand: 'AURA',
-        description: 'A matching co-ord set featuring a vibrant, artistic print on premium breathable fabric. Perfect for effortless summer elegance.',
-        price: 220.0,
-        imageUrl: 'assets/images/home/home4.jpg',
-        category: ProductCategory.mens,
-      ),
-    ];
-
     return SizedBox(
       height: 220,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: products.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 16),
-        itemBuilder: (context, i) => _LargeProductCard(product: products[i]),
+      child: StreamBuilder<List<ProductModel>>(
+        stream: FirestoreService().getProducts(ProductCategory.all),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return _buildShimmer(context);
+          }
+          
+          final products = snapshot.data ?? [];
+          if (products.isEmpty) {
+            return const Center(child: Text('No products found.'));
+          }
+
+          return ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: products.length > 5 ? 5 : products.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 16),
+            itemBuilder: (context, i) => _LargeProductCard(product: products[i]),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildShimmer(BuildContext context) {
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: 3,
+      itemBuilder: (_, __) => Padding(
+        padding: const EdgeInsets.only(right: 16),
+        child: Shimmer.fromColors(
+          baseColor: Colors.grey[300]!,
+          highlightColor: Colors.grey[100]!,
+          child: Container(
+            width: 180,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -311,44 +331,50 @@ class _LooksWeLoveList extends StatelessWidget {
 class _RecommendedList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final products = [
-      const ProductModel(
-        id: 'h5',
-        name: 'Linen Comfort',
-        brand: 'AURA',
-        description: 'Crafted from highest quality European linen, this crisp white shirt offers a relaxed yet sophisticated silhouette for warm evenings.',
-        price: 150.0,
-        imageUrl: 'assets/images/home/home 5.jpg',
-        category: ProductCategory.womens,
-      ),
-      const ProductModel(
-        id: 'h6',
-        name: 'Olive Suit',
-        brand: 'AURA',
-        description: 'A tailored olive green suit made from premium wool blend, featuring a modern slim fit and subtle textured finish for the modern professional.',
-        price: 450.0,
-        imageUrl: 'assets/images/home/home 6.jpg',
-        category: ProductCategory.mens,
-      ),
-      const ProductModel(
-        id: 'h3',
-        name: 'Ethnic Elegance',
-        brand: 'AURA',
-        description: 'This outfit mixes styles by pairing a white off-the-shoulder crop top and denim shorts with a heavily patterned red dupatta draped over one side to mimic a saree\'s flow.',
-        price: 600.0,
-        imageUrl: 'assets/images/home/home3.jpg',
-        category: ProductCategory.womens,
-      ),
-    ];
-
     return SizedBox(
       height: 220,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: products.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 16),
-        itemBuilder: (context, i) => _LargeProductCard(product: products[i]),
+      child: StreamBuilder<List<ProductModel>>(
+        stream: FirestoreService().getNewArrivals(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return _buildShimmer(context);
+          }
+          
+          final products = snapshot.data ?? [];
+          if (products.isEmpty) {
+            return const Center(child: Text('Empty arrivals.'));
+          }
+
+          return ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: products.length > 5 ? 5 : products.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 16),
+            itemBuilder: (context, i) => _LargeProductCard(product: products[i]),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildShimmer(BuildContext context) {
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: 3,
+      itemBuilder: (_, __) => Padding(
+        padding: const EdgeInsets.only(right: 16),
+        child: Shimmer.fromColors(
+          baseColor: Colors.grey[300]!,
+          highlightColor: Colors.grey[100]!,
+          child: Container(
+            width: 180,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -483,6 +509,8 @@ class _AppDrawer extends StatelessWidget {
               label: 'Logout',
               color: Colors.redAccent,
               onTap: () {
+                context.read<AuthProvider>().logout();
+                context.read<FavouriteProvider>().clear();
                 Navigator.pop(context);
                 context.go(AppRoutes.login);
               },

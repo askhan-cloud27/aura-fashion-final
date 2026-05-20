@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/favourite_provider.dart';
+import '../../services/firestore_service.dart';
 import '../../routes/app_routes.dart';
 import '../../utils/constants/app_colors.dart';
 
@@ -39,6 +41,8 @@ class ProfileScreen extends StatelessWidget {
           onPressed: () {
             if (context.canPop()) {
               context.pop();
+            } else {
+              context.go(AppRoutes.home);
             }
           },
         ),
@@ -77,7 +81,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 16),
             // Name
             Text(
-              'Mr.Askhan',
+              auth.userName.isNotEmpty ? auth.userName : 'Aura User',
               style: GoogleFonts.cormorantGaramond(
                 fontSize: 26,
                 fontWeight: FontWeight.w900,
@@ -116,15 +120,38 @@ class ProfileScreen extends StatelessWidget {
                       title: item['title'] as String,
                       onTap: () => context.push(item['route'] as String),
                     ),
-                  )).toList(),
+                  )),
                   
                   // Logout
                   _ProfileMenuItem(
                     icon: Icons.person_remove_alt_1_outlined, 
                     title: 'Logout',
                     onTap: () {
+                      context.read<FavouriteProvider>().clear();
                       auth.logout();
                       context.go(AppRoutes.onboarding);
+                    },
+                  ),
+                  const Divider(height: 32),
+                  // Seed Database (Dev only)
+                  _ProfileMenuItem(
+                    icon: Icons.storage_outlined,
+                    title: 'Seed Database (Admin)',
+                    onTap: () async {
+                      final scaffold = ScaffoldMessenger.of(context);
+                      scaffold.showSnackBar(
+                        const SnackBar(content: Text('Seeding database...')),
+                      );
+                      try {
+                        await FirestoreService().seedDatabase();
+                        scaffold.showSnackBar(
+                          const SnackBar(content: Text('Database seeded!')),
+                        );
+                      } catch (e) {
+                        scaffold.showSnackBar(
+                          SnackBar(content: Text('Error: $e')),
+                        );
+                      }
                     },
                   ),
                   const SizedBox(height: 32),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/cart_provider.dart';
+import '../../../providers/auth_provider.dart';
 import '../../../routes/app_routes.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../widgets/common/primary_button.dart';
@@ -15,14 +17,28 @@ class ShippingScreen extends StatefulWidget {
 
 class _ShippingScreenState extends State<ShippingScreen> {
   final _addressController = TextEditingController();
-  final _fixedItemController = TextEditingController(); 
+  final _cityController = TextEditingController(); 
   final _zipController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _saveAddress = false;
+  bool _initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      final auth = context.read<AuthProvider>();
+      _addressController.text = auth.userAddress;
+      _cityController.text = auth.userCity;
+      _zipController.text = auth.userZipCode;
+      _initialized = true;
+    }
+  }
 
   @override
   void dispose() {
     _addressController.dispose();
-    _fixedItemController.dispose();
+    _cityController.dispose();
     _zipController.dispose();
     super.dispose();
   }
@@ -32,7 +48,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
     final cart = context.watch<CartProvider>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF9F6), // Ivory
+      backgroundColor: const Color(0xFFFAF9F6), 
       appBar: AppBar(
         title: const Text('Checkout', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
         backgroundColor: AppColors.primary,
@@ -40,14 +56,19 @@ class _ShippingScreenState extends State<ShippingScreen> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.home);
+            }
+          },
         ),
       ),
       bottomNavigationBar: _buildBottomNav(context),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Progress Header
             Container(
               color: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
@@ -75,18 +96,29 @@ class _ShippingScreenState extends State<ShippingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Shipping Address Section
                     const Text('Shipping Address', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
                     const SizedBox(height: 16),
-                    _buildCheckoutField(_addressController, 'Enter your address'),
+                    _buildCheckoutField(_addressController, 'Street Address'),
                     const SizedBox(height: 16),
-                    _buildCheckoutField(_fixedItemController, 'Fixed Item'),
+                    _buildCheckoutField(_cityController, 'City / State'),
                     const SizedBox(height: 16),
-                    _buildCheckoutField(_zipController, 'Zip code'),
+                    _buildCheckoutField(_zipController, 'Zip code', isZip: true),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: _saveAddress,
+                          onChanged: (v) {
+                            if (v != null) setState(() => _saveAddress = v);
+                          },
+                          activeColor: AppColors.primary,
+                        ),
+                        const Text('Save address to my profile', style: TextStyle(color: Colors.black87, fontSize: 13)),
+                      ],
+                    ),
                     
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 16),
                     
-                    // Payment Method Section
                     const Text('Payment Method', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
                     const SizedBox(height: 16),
                     Column(
@@ -112,7 +144,6 @@ class _ShippingScreenState extends State<ShippingScreen> {
 
                     const SizedBox(height: 32),
 
-                    // Order Summary Section
                     const Text('Order Summary', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
                     const SizedBox(height: 16),
                     Row(
@@ -141,8 +172,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
 
                     const SizedBox(height: 32),
 
-                    // Place Order Button
-                    PrimaryButton(
+                     PrimaryButton(
                       label: 'PLACE ORDER',
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
@@ -167,10 +197,12 @@ class _ShippingScreenState extends State<ShippingScreen> {
     );
   }
 
-  Widget _buildCheckoutField(TextEditingController controller, String hint) {
+  Widget _buildCheckoutField(TextEditingController controller, String hint, {bool isZip = false}) {
     return TextFormField(
       controller: controller,
       style: const TextStyle(fontSize: 13, color: Colors.black87),
+      keyboardType: isZip ? TextInputType.number : TextInputType.text,
+      inputFormatters: isZip ? [FilteringTextInputFormatter.digitsOnly] : null,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(color: Colors.black87, fontSize: 13),
@@ -190,7 +222,11 @@ class _ShippingScreenState extends State<ShippingScreen> {
           borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
       ),
-      validator: (v) => v!.isEmpty ? 'Required' : null,
+      validator: (v) {
+        if (v == null || v.isEmpty) return 'enter the valid input';
+        if (isZip && v.length < 5) return 'enter the valid input';
+        return null;
+      },
     );
   }
 
@@ -198,6 +234,13 @@ class _ShippingScreenState extends State<ShippingScreen> {
     return GestureDetector(
       onTap: () {
         if (_formKey.currentState!.validate()) {
+          if (_saveAddress) {
+            context.read<AuthProvider>().updateProfile(
+              address: _addressController.text,
+              city: _cityController.text,
+              zipCode: _zipController.text,
+            );
+          }
           context.push(AppRoutes.paymentCheckout);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -211,7 +254,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
       child: Container(
         width: 75,
         height: 45,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
         ),
         child: Image.asset(
@@ -225,13 +268,13 @@ class _ShippingScreenState extends State<ShippingScreen> {
 
   Widget _buildBottomNav(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.navBackground,
         boxShadow: [
           BoxShadow(
             color: AppColors.shadow,
             blurRadius: 10,
-            offset: const Offset(0, -2),
+            offset: Offset(0, -2),
           ),
         ],
       ),
@@ -243,7 +286,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
             children: [
               _NavItem(icon: Icons.home_outlined, onTap: () => context.go(AppRoutes.home)),
               _NavItem(icon: Icons.grid_view_outlined, onTap: () => context.go('${AppRoutes.productList}?category=all&title=All Products')),
-              _NavItem(icon: Icons.search_outlined, onTap: () {}),
+              _NavItem(icon: Icons.search_outlined, onTap: () => context.push('${AppRoutes.productList}?search=true')),
               _NavItem(icon: Icons.person_outline, onTap: () => context.go(AppRoutes.profile)),
             ],
           ),

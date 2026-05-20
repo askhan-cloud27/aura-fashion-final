@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../routes/app_routes.dart';
@@ -81,23 +80,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             width: double.infinity,
                             padding: const EdgeInsets.fromLTRB(28, 60, 28, 40),
                             color: AppColors.primary,
-                            child: Column(
+                            child: const Column(
                               children: [
-                                const AuraLogo(fontSize: 28),
-                                const SizedBox(height: 16),
+                                AuraLogo(fontSize: 28),
+                                SizedBox(height: 16),
                                 Text(
                                   AppStrings.createAccount,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
                                     letterSpacing: 1.1,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
+                                SizedBox(height: 8),
                                 Text(
                                   AppStrings.joinAura,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.white70,
                                   ),
@@ -122,7 +121,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                       controller: _nameController,
                                       label: AppStrings.fullName,
                                       prefixIcon: const Icon(Icons.person_outline),
-                                      validator: (v) => v!.isEmpty ? 'Name is required' : null,
+                                      validator: (v) => v!.isEmpty ? 'enter the valid input' : null,
                                     ),
                                     const SizedBox(height: 16),
                                     CustomTextField(
@@ -130,7 +129,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                       label: AppStrings.email,
                                       keyboardType: TextInputType.emailAddress,
                                       prefixIcon: const Icon(Icons.email_outlined),
-                                      validator: (v) => v!.isEmpty ? 'Email is required' : null,
+                                      validator: (v) {
+                                        if (v == null || v.isEmpty) return 'enter the valid input';
+                                        if (!v.contains('@gmail.com')) {
+                                          return 'Please use a valid @gmail.com address';
+                                        }
+                                        return null;
+                                      },
                                     ),
                                     const SizedBox(height: 16),
                                     CustomTextField(
@@ -145,7 +150,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                           size: 20, color: Colors.black54,
                                         ),
                                       ),
-                                      validator: (v) => v!.length < 6 ? 'Min 6 characters' : null,
+                                      validator: (v) => v!.length < 6 ? 'enter the valid input' : null,
                                     ),
                                     const SizedBox(height: 16),
                                     CustomTextField(
@@ -160,7 +165,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                           size: 20, color: Colors.black54,
                                         ),
                                       ),
-                                      validator: (v) => v != _passwordController.text ? 'Passwords do not match' : null,
+                                      validator: (v) => v != _passwordController.text ? 'enter the valid input' : null,
                                     ),
                                     const SizedBox(height: 20),
                                     Row(

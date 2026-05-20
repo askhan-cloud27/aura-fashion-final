@@ -1,16 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import '../../models/order_model.dart';
 import '../../utils/constants/app_colors.dart';
-import '../../providers/cart_provider.dart';
+import '../../routes/app_routes.dart';
 
 class OrderDetailsScreen extends StatelessWidget {
-  const OrderDetailsScreen({super.key});
+  final OrderModel? order;
+  const OrderDetailsScreen({super.key, this.order});
 
   @override
   Widget build(BuildContext context) {
-    final cart = context.watch<CartProvider>();
-    final hasItems = !cart.isEmpty;
+    // If order was not passed (e.g. direct deep link or error), we could show an error,
+    // but here we'll assume it's passed or use a fallback if needed.
+    if (order == null) {
+      return Scaffold(
+        appBar: AppBar(backgroundColor: AppColors.primary),
+        body: const Center(child: Text('Order not found.')),
+      );
+    }
+
+    final dateStr = DateFormat('MMM dd, yyyy').format(order!.placedAt);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAF9F6), // Ivory background
@@ -27,23 +37,15 @@ class OrderDetailsScreen extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white, size: 24),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
+            } else {
+              context.go(AppRoutes.home);
             }
           },
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.white, size: 22),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 22),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -54,15 +56,15 @@ class OrderDetailsScreen extends StatelessWidget {
               title: 'General Information',
               child: Column(
                 children: [
-                  _InfoRow(label: 'Order ID :', value: '#AURA7858'),
+                  _InfoRow(label: 'Order ID :', value: '#${order!.orderId.substring(0, 8).toUpperCase()}'),
                   const SizedBox(height: 8),
-                  _InfoRow(label: 'Date :', value: 'Nov 12,2026'),
+                  _InfoRow(label: 'Date :', value: dateStr),
                   const SizedBox(height: 8),
-                  _InfoRow(label: 'customer:', value: 'Askhan'),
+                  const _InfoRow(label: 'customer:', value: 'Verified User'),
                   const SizedBox(height: 8),
                   _InfoRow(
                     label: 'Status:',
-                    value: 'Deliverd',
+                    value: order!.status,
                     valueColor: AppColors.primary,
                     isBold: true,
                   ),
@@ -72,33 +74,16 @@ class OrderDetailsScreen extends StatelessWidget {
             
             const SizedBox(height: 12),
             
-            // Product Items (Dynamic or Fallback)
-            if (hasItems)
-              ...cart.items.map((item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: _buildProductItem(
-                      imageUrl: item.product.imageUrl,
-                      title: item.product.name,
-                      price: '\$${item.product.price.toStringAsFixed(2)}',
-                      qty: 'Qty ${item.quantity}',
-                    ),
-                  )).toList()
-            else
-              ...[
-                _buildProductItem(
-                  imageUrl: 'assets/images/order details/cart 2.jpg',
-                  title: 'Men Printed shirt',
-                  price: '\$275.00',
-                  qty: 'Qty 1',
-                ),
-                const SizedBox(height: 6),
-                _buildProductItem(
-                  imageUrl: 'assets/images/order details/image 3.jpg',
-                  title: 'Trendy Frock',
-                  price: '\$410.00',
-                  qty: 'Qty 1',
-                ),
-              ],
+            // Product Items
+            ...order!.items.map((item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: _buildProductItem(
+                    imageUrl: item.product.imageUrl,
+                    title: item.product.name,
+                    price: '\$${item.product.price.toStringAsFixed(2)}',
+                    qty: 'Qty ${item.quantity}',
+                  ),
+                )),
             
             const SizedBox(height: 12),
             
@@ -113,11 +98,11 @@ class OrderDetailsScreen extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black),
                   ),
                   const SizedBox(height: 6),
-                  const Text('Address : 1', style: TextStyle(fontSize: 13, color: Colors.black87, fontWeight: FontWeight.bold)),
+                  Text('Address : ${order!.shippingAddress}', style: const TextStyle(fontSize: 13, color: Colors.black87, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
-                  const Text('method :Standart', style: TextStyle(fontSize: 13, color: Colors.black87, fontWeight: FontWeight.bold)),
+                  const Text('Method : Standard Shipping', style: TextStyle(fontSize: 13, color: Colors.black87, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
-                  const Text('TRacking number : Gold link', style: TextStyle(fontSize: 13, color: Colors.black87, fontWeight: FontWeight.bold)),
+                  const Text('Tracking : Pending', style: TextStyle(fontSize: 13, color: Colors.black87, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -135,13 +120,13 @@ class OrderDetailsScreen extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black),
                   ),
                   const SizedBox(height: 12),
-                  _InfoRow(label: 'Payment', value: 'Visa******123', isBoldLabel: true, isBoldValue: true),
+                  _InfoRow(label: 'Payment', value: order!.paymentMethod, isBoldLabel: true, isBoldValue: true),
                   const SizedBox(height: 8),
-                  _InfoRow(label: 'Subtotal', value: hasItems ? '\$${cart.subtotal.toStringAsFixed(2)}' : '\$885.00', isBoldLabel: true, isBoldValue: true),
+                  _InfoRow(label: 'Subtotal', value: '\$${order!.subtotal.toStringAsFixed(2)}', isBoldLabel: true, isBoldValue: true),
                   const SizedBox(height: 8),
-                  _InfoRow(label: 'Shipping', value: hasItems ? '\$${cart.shippingCost.toStringAsFixed(2)}' : '\$125.00', isBoldLabel: true, isBoldValue: true),
+                  _InfoRow(label: 'Shipping', value: '\$${order!.shippingCost.toStringAsFixed(2)}', isBoldLabel: true, isBoldValue: true),
                   const SizedBox(height: 8),
-                  _InfoRow(label: 'Total', value: hasItems ? '\$${cart.total.toStringAsFixed(2)}' : '\$1000.00', isBoldLabel: true, isBoldValue: true),
+                  _InfoRow(label: 'Total', value: '\$${order!.total.toStringAsFixed(2)}', isBoldLabel: true, isBoldValue: true),
                 ],
               ),
             ),
@@ -174,7 +159,6 @@ class OrderDetailsScreen extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
-          // Need child to span full width natively for custom layouts
           SizedBox(
             width: double.infinity,
             child: child,
@@ -194,7 +178,7 @@ class OrderDetailsScreen extends StatelessWidget {
       height: 100,
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: const Color(0xFFE5D5B5), width: 1.5), // Gold border applied to items too
+        border: Border.all(color: const Color(0xFFE5D5B5), width: 1.5), // Gold border
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,45 +201,40 @@ class OrderDetailsScreen extends StatelessWidget {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-              child: Stack(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Title
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  // Price
-                  Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Text(
-                      price,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.accent, // Gold color
-                        fontWeight: FontWeight.bold,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        price,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.accent, // Gold color
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                  ),
-                  // Quantity
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      qty,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                      Text(
+                        qty,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
